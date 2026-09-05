@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ИКСЫ — расчёт заказа</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #fcfbf9;
+    --ink: #121212;
+    --line: #121212;
+    --line-soft: #ddd9d0;
+    --muted: #78736a;
+    --paper: #ffffff;
+    --display: 'Bodoni Moda', Georgia, 'Times New Roman', serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body{ padding-bottom: 96px; }
+
+  .wrap{
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ---------- header ---------- */
+  header{ padding-top: 28px; text-align: center; }
+  .hairline{ height: 1px; background: var(--line); width: 100%; }
+  .wordmark{
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 30px;
+    letter-spacing: 0.42em;
+    padding: 18px 0;
+    padding-left: 0.42em;
+  }
+
+  /* ---------- faq (bottom) ---------- */
+  .faq{ padding: 20px 0 4px; }
+  .faq-item + .faq-item{ margin-top: 12px; }
+  .faq-q{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .faq-q span{ font-size: 12.5px; color: var(--muted); }
+  .tip{
+    display: none;
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.55;
+    margin-top: 8px;
+    padding-right: 28px;
+  }
+  .tip.open{ display: block; }
+
+  .info-btn{
+    flex: 0 0 auto;
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    border: 1px solid var(--muted);
+    background: none;
+    color: var(--muted);
+    font-family: var(--body);
+    font-size: 11px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .info-btn.open{ border-color: var(--ink); color: var(--ink); }
+
+  /* ---------- section ---------- */
+  section{ padding: 26px 0; border-bottom: 1px solid var(--line-soft); }
+  section:last-of-type{ border-bottom: none; }
+
+  .section-title{
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  /* ---------- form fields ---------- */
+  .field{ margin-bottom: 18px; }
+  .label-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .field label, .label-row span{
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .field select,
+  .field input[type="text"],
+  .field input[type="number"]{
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    padding: 8px 2px;
+    font-family: var(--body);
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  .field select{
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+    background-position: calc(100% - 8px) 14px, calc(100% - 3px) 14px;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  .field input::placeholder{ color: #b9b4a9; }
+  .field select:focus, .field input:focus{ box-shadow: 0 1px 0 0 var(--ink); }
+  .field .tip{ padding-right: 0; }
+
+  .row-2{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .note{
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: -10px;
+    margin-bottom: 18px;
+    font-style: italic;
+  }
+
+  details.more{ margin-bottom: 4px; }
+  details.more summary{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: 16px;
+    list-style: none;
+  }
+  details.more summary::-webkit-details-marker{ display:none; }
+  details.more summary .chevron{
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+  }
+  details.more[open] summary .chevron{ transform: rotate(180deg); }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 15px 18px;
+    font-family: var(--body);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn-primary{ background: var(--ink); color: var(--paper); }
+  .btn-primary:active{ opacity: 0.75; }
+  .btn-ghost:active{ background: var(--ink); color: var(--paper); }
+
+  /* ---------- cart ---------- */
+  .empty{ font-size: 13px; color: var(--muted); padding: 6px 0 4px; }
+  .item{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .item:last-child{ border-bottom: none; }
+  .item-main{ flex: 1; min-width: 0; }
+  .item-name{
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .item-meta{ font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+  .item-link{ color: var(--ink); text-decoration: underline; word-break: break-all; }
+  .item-sum{ font-size: 14.5px; font-weight: 500; white-space: nowrap; margin-top: 2px; }
+  .item-remove{
+    font-family: var(--display);
+    font-size: 15px;
+    line-height: 1;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0 0 4px;
+  }
+  .item-remove:active{ color: var(--ink); }
+
+  .breakdown{ font-size: 11px; color: var(--muted); margin-top: 6px; display: none; }
+  .item.open .breakdown{ display: block; }
+  .item-toggle{
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  footer.total-bar{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--paper);
+    border-top: 1px solid var(--ink);
+    padding: 14px 20px 18px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  footer.total-bar.hide-for-keyboard{
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .total-bar-inner{ max-width: 460px; margin: 0 auto; }
+  .total-row{ display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .total-label{ font-family: var(--display); font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .total-value{ font-family: var(--display); font-size: 22px; }
+
+  .footnote{ text-align: center; font-size: 10.5px; color: var(--muted); padding: 20px 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="hairline"></div>
+    <div class="wordmark">ИКСЫ</div>
+    <div class="hairline"></div>
+  </header>
+
+  <section id="form-section">
+    <div class="section-title">Новая позиция</div>
+
+    <div class="field">
+      <label for="category">Категория</label>
+      <select id="category">
+        <option value="odezhda">Одежда и головные уборы</option>
+        <option value="obuv">Обувь</option>
+        <option value="aksessuary">Аксессуары (очки, часы)</option>
+        <option value="sumki">Сумки</option>
+        <option value="premium">Товар дороже 500 000 ₽</option>
+      </select>
+    </div>
+
+    <div class="field" id="delivery-field">
+      <div class="label-row">
+        <span>Тип доставки</span>
+        <button type="button" class="info-btn" data-tip-toggle="tip-delivery">&#191;</button>
+      </div>
+      <select id="delivery">
+        <option value="truck">Фура — дешевле, дольше</option>
+        <option value="avia">Авиа — быстрее, дороже</option>
+      </select>
+      <div class="tip" id="tip-delivery">фура — месяц, авиа — неделя. отсчёт с момента отправки в рф</div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <div class="label-row">
+          <span>Вес, кг</span>
+          <button type="button" class="info-btn" data-tip-toggle="tip-weight">&#191;</button>
+        </div>
+        <input type="number" id="weight" inputmode="decimal" step="0.1" min="0" placeholder="0.0">
+      </div>
+      <div class="field">
+        <label for="price">Цена товара, ¥</label>
+        <input type="number" id="price" inputmode="decimal" step="1" min="0" placeholder="0">
+      </div>
+    </div>
+    <div class="tip" id="tip-weight" style="margin-top:-10px;">минимум уже прикинут по опыту — если сомневаешься, округляй в большую сторону</div>
+
+    <div class="field" id="qty-field" style="display:none;">
+      <label for="qty">Количество, шт</label>
+      <input type="number" id="qty" inputmode="numeric" step="1" min="1" placeholder="1">
+    </div>
+    <div class="note" id="piece-note" style="display:none;">стоимость доставки для этой категории считается поштучно</div>
+
+    <details class="more">
+      <summary><span>Ссылка и размер (необязательно)</span><span class="chevron">&#9662;</span></summary>
+      <div class="field">
+        <label for="plink">Ссылка на товар (Poizon)</label>
+        <input type="text" id="plink" placeholder="вставьте ссылку">
+      </div>
+      <div class="field">
+        <label for="psize">Размер</label>
+        <input type="text" id="psize" placeholder="например, 38 или M">
+      </div>
+    </details>
+
+    <button class="btn btn-primary" id="add-btn" style="margin-top: 6px;">Добавить в расчёт</button>
+  </section>
+
+  <section id="cart-section">
+    <div class="section-title">Ваш заказ</div>
+    <div id="cart-list">
+      <div class="empty">пока пусто — добавьте первую позицию выше</div>
+    </div>
+  </section>
+
+  <div class="faq">
+    <div class="faq-item">
+      <div class="faq-q" data-tip-toggle="tip-warehouse">
+        <span>Сколько идёт до склада в Китае?</span>
+        <button type="button" class="info-btn" data-tip-toggle="tip-warehouse">&#191;</button>
+      </div>
+      <div class="tip" id="tip-warehouse">чаще 3 дня, максимум неделя</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-tip-toggle="tip-location">
+        <span>Где вы находитесь?</span>
+        <button type="button" class="info-btn" data-tip-toggle="tip-location">&#191;</button>
+      </div>
+      <div class="tip" id="tip-location">екатеринбург — расчёт до екб, дальше по россии. от 10 кг отправлю сразу к вам</div>
+    </div>
+  </div>
+
+  <div class="footnote">цены часто меняются — расчёт ориентировочный, точную сумму озвучиваю индивидуально</div>
+
+</div>
+
+<footer class="total-bar" id="total-bar">
+  <div class="total-bar-inner">
+    <div class="total-row">
+      <div class="total-label">Итого к оплате</div>
+      <div class="total-value" id="total-value">0 ₽</div>
+    </div>
+    <button class="btn btn-ghost" id="submit-btn">Отправить расчёт</button>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  // ---- source of truth: mirrors "Заказы (новое)" formulas in china_updated.xlsx,   ----
+  // ---- with markup unified to 20% of item price per поставленной задаче (все = poizon-логика) ----
+  // ---- курс ¥ и $ подтягивается из rates.json (лежит рядом с этим файлом на хостинге) ----
+  // ---- значения ниже — запасной вариант, если rates.json не найден ----
+  var RATES = {
+    yuan: 14,                  // курс юаня, ₽ за 1¥
+    usd: 90,                   // курс доллара, ₽ за 1$
+    truckUsdPerKg: 3,          // rates!C16 (бывш. "ДВ")
+    aviaOtherYuanPerKg: 230,   // rates!D16
+    aviaClothesYuanPerKg: 200, // rates!E16
+    pieceYuan: 600,            // rates!F16
+    tkPerKg: 200               // rates!B4
+  };
+
+  // прогрессивная наценка: чем дешевле товар, тем меньше наценка в рублях —
+  // ступени растут плавно и сходятся с 25% к моменту, когда включается процент.
+  // можно переопределить через rates.json (markupTiers), см. loadRates ниже.
+  var MARKUP_TIERS = [
+    { maxYuan: 100,      type: 'fixed',   value: 1000 },
+    { maxYuan: 250,      type: 'fixed',   value: 1600 },
+    { maxYuan: 450,      type: 'fixed',   value: 3000 },
+    { maxYuan: 950,      type: 'fixed',   value: 4000 },
+    { maxYuan: Infinity, type: 'percent', value: 0.3 }
+  ];
+
+  function getMarkup(priceYuan, priceRub){
+    for (var i = 0; i < MARKUP_TIERS.length; i++){
+      if (priceYuan <= MARKUP_TIERS[i].maxYuan){
+        var t = MARKUP_TIERS[i];
+        return t.type === 'percent' ? priceRub * t.value : t.value;
+      }
+    }
+    var last = MARKUP_TIERS[MARKUP_TIERS.length - 1];
+    return last.type === 'percent' ? priceRub * last.value : last.value;
+  }
+
+  var CATEGORIES = [
+    { value: 'odezhda',    label: 'Одежда и головные уборы', truckMin: 0.5 },
+    { value: 'obuv',       label: 'Обувь',                    truckMin: 2 },
+    { value: 'aksessuary', label: 'Аксессуары (очки, часы)',  truckMin: 0.3 },
+    { value: 'sumki',      label: 'Сумки',                    truckMin: 1 },
+    { value: 'premium',    label: 'Товар дороже 500 000 ₽',   truckMin: 0.3, forcePiece: true }
+  ];
+
+  function getCategory(value){
+    for (var i = 0; i < CATEGORIES.length; i++) { if (CATEGORIES[i].value === value) return CATEGORIES[i]; }
+    return CATEGORIES[0];
+  }
+
+  function getMinWeight(categoryValue, deliveryValue){
+    var cat = getCategory(categoryValue);
+    if (cat.forcePiece) return cat.truckMin;
+    if (deliveryValue === 'avia') return categoryValue === 'obuv' ? 2 : 1;
+    return cat.truckMin;
+  }
+
+  // подтягивает курс из rates.json рядом с этим файлом на хостинге —
+  // чтобы менять курс, просто правишь 2 числа в rates.json, код трогать не нужно
+  fetch('rates.json', { cache: 'no-store' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      if (!data) return;
+      if (typeof data.yuan === 'number') RATES.yuan = data.yuan;
+      if (typeof data.usd === 'number') RATES.usd = data.usd;
+      if (Array.isArray(data.markupTiers) && data.markupTiers.length){
+        MARKUP_TIERS = data.markupTiers.map(function(t){
+          return {
+            maxYuan: (t.maxYuan === null || t.maxYuan === undefined) ? Infinity : t.maxYuan,
+            type: t.type,
+            value: t.value
+          };
+        });
+      }
+    })
+    .catch(function(){ /* rates.json не найден — считаем по запасным значениям выше */ });
+
+  function calcItem(d){
+    var priceRub = d.priceYuan * RATES.yuan;
+    var tk = d.weight * RATES.tkPerKg;
+    var cat = getCategory(d.category);
+    var pieceMode = !!cat.forcePiece;
+
+    var cargo;
+    if (pieceMode) {
+      cargo = (d.qty || 1) * RATES.pieceYuan * RATES.yuan;
+    } else if (d.delivery === 'truck') {
+      cargo = d.weight * RATES.truckUsdPerKg * RATES.usd;
+    } else if (d.category === 'odezhda') {
+      cargo = d.weight * RATES.aviaClothesYuanPerKg * RATES.yuan;
+    } else {
+      cargo = d.weight * RATES.aviaOtherYuanPerKg * RATES.yuan;
+    }
+
+    var deliveryTotal = tk + cargo;
+    var markupValue = getMarkup(d.priceYuan, priceRub);
+    var itemWithMarkup = priceRub + markupValue;
+    var total = itemWithMarkup + deliveryTotal;
+
+    return { priceRub: priceRub, markupValue: markupValue, itemWithMarkup: itemWithMarkup,
+             deliveryTotal: deliveryTotal, total: total, pieceMode: pieceMode };
+  }
+
+  function fmt(n){ return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+
+  // ---- state ----
+  var cart = [];
+  var nextId = 1;
+
+  // ---- elements ----
+  var categoryEl = document.getElementById('category');
+  var deliveryEl = document.getElementById('delivery');
+  var deliveryFieldEl = document.getElementById('delivery-field');
+  var weightEl = document.getElementById('weight');
+  var priceEl = document.getElementById('price');
+  var qtyFieldEl = document.getElementById('qty-field');
+  var qtyEl = document.getElementById('qty');
+  var pieceNoteEl = document.getElementById('piece-note');
+  var plinkEl = document.getElementById('plink');
+  var psizeEl = document.getElementById('psize');
+  var cartListEl = document.getElementById('cart-list');
+  var totalValueEl = document.getElementById('total-value');
+
+  function syncCategoryUI(){
+    var cat = getCategory(categoryEl.value);
+    var pieceMode = !!cat.forcePiece;
+
+    deliveryFieldEl.style.display = pieceMode ? 'none' : 'block';
+    qtyFieldEl.style.display = pieceMode ? 'block' : 'none';
+    pieceNoteEl.style.display = pieceMode ? 'block' : 'none';
+
+    updateWeightMin();
+  }
+
+  function updateWeightMin(){
+    var min = getMinWeight(categoryEl.value, deliveryEl.value);
+    weightEl.min = min;
+    weightEl.placeholder = 'от ' + min;
+    var current = parseFloat(weightEl.value);
+    if (!isNaN(current) && current < min) weightEl.value = min;
+  }
+
+  categoryEl.addEventListener('change', syncCategoryUI);
+  deliveryEl.addEventListener('change', updateWeightMin);
+  weightEl.addEventListener('blur', function(){
+    var min = getMinWeight(categoryEl.value, deliveryEl.value);
+    var v = parseFloat(weightEl.value);
+    if (!isNaN(v) && v < min) weightEl.value = min;
+  });
+  syncCategoryUI();
+
+  // ---- info tooltips ----
+  document.addEventListener('click', function(e){
+    var toggle = e.target.closest('[data-tip-toggle]');
+    if (!toggle) return;
+    var id = toggle.getAttribute('data-tip-toggle');
+    var tip = document.getElementById(id);
+    if (!tip) return;
+    var isOpen = tip.classList.toggle('open');
+    document.querySelectorAll('[data-tip-toggle="' + id + '"].info-btn').forEach(function(btn){
+      btn.classList.toggle('open', isOpen);
+    });
+  });
+
+  function readForm(){
+    return {
+      category: categoryEl.value,
+      delivery: deliveryEl.value,
+      weight: parseFloat(weightEl.value) || 0,
+      priceYuan: parseFloat(priceEl.value) || 0,
+      qty: parseInt(qtyEl.value, 10) || 1,
+      link: plinkEl.value.trim(),
+      size: psizeEl.value.trim()
+    };
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function renderCart(){
+    if (cart.length === 0) {
+      cartListEl.innerHTML = '<div class="empty">пока пусто — добавьте первую позицию выше</div>';
+      totalValueEl.textContent = fmt(0);
+      return;
+    }
+
+    var html = '';
+    var grandTotal = 0;
+
+    cart.forEach(function(entry){
+      grandTotal += entry.result.total;
+      var catLabel = getCategory(entry.data.category).label;
+      var sizePart = entry.data.size ? (' · ' + entry.data.size) : '';
+      var deliveryLabel = entry.result.pieceMode ? 'поштучно' : (entry.data.delivery === 'truck' ? 'фура' : 'авиа');
+      var linkPart = entry.data.link
+        ? '<br><a class="item-link" href="' + escapeHtml(entry.data.link) + '" target="_blank" rel="noopener">' + escapeHtml(entry.data.link) + '</a>'
+        : '';
+
+      html += ''
+        + '<div class="item" data-id="' + entry.id + '">'
+        +   '<div class="item-main">'
+        +     '<div class="item-name">' + escapeHtml(catLabel) + '</div>'
+        +     '<div class="item-meta">' + deliveryLabel + sizePart + ' · ' + entry.data.weight + ' кг · ¥' + entry.data.priceYuan + linkPart + '</div>'
+        +     '<span class="item-toggle" data-toggle="' + entry.id + '">детали расчёта</span>'
+        +     '<div class="breakdown">'
+        +       'товар: ' + fmt(entry.result.itemWithMarkup) + '<br>'
+        +       'доставка: ' + fmt(entry.result.deliveryTotal)
+        +     '</div>'
+        +   '</div>'
+        +   '<div style="text-align:right;">'
+        +     '<div class="item-sum">' + fmt(entry.result.total) + '</div>'
+        +     '<button class="item-remove" data-remove="' + entry.id + '" aria-label="удалить">X</button>'
+        +   '</div>'
+        + '</div>';
+    });
+
+    cartListEl.innerHTML = html;
+    totalValueEl.textContent = fmt(grandTotal);
+
+    cartListEl.querySelectorAll('[data-remove]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = parseInt(btn.getAttribute('data-remove'), 10);
+        cart = cart.filter(function(e){ return e.id !== id; });
+        renderCart();
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      });
+    });
+
+    cartListEl.querySelectorAll('[data-toggle]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var id = el.getAttribute('data-toggle');
+        var itemEl = cartListEl.querySelector('.item[data-id="' + id + '"]');
+        itemEl.classList.toggle('open');
+      });
+    });
+  }
+
+  document.getElementById('add-btn').addEventListener('click', function(){
+    var data = readForm();
+
+    if (!data.priceYuan || data.priceYuan <= 0) { priceEl.focus(); return; }
+
+    var min = getMinWeight(data.category, data.delivery);
+    if (!data.weight || data.weight < min) { data.weight = min; weightEl.value = min; }
+
+    var result = calcItem(data);
+    cart.push({ id: nextId++, data: data, result: result });
+    renderCart();
+
+    weightEl.value = '';
+    priceEl.value = '';
+    qtyEl.value = '';
+    plinkEl.value = '';
+    psizeEl.value = '';
+    updateWeightMin();
+
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+  });
+
+  function buildSummaryText(payload){
+    var lines = payload.items.map(function(i){
+      var l = i.category + ' — ' + i.total_rub.toLocaleString('ru-RU') + ' ₽';
+      if (i.link) l += '\n' + i.link;
+      if (i.size) l += '\nразмер: ' + i.size;
+      return l;
+    });
+    lines.push('\nитого: ' + payload.total_rub.toLocaleString('ru-RU') + ' ₽');
+    return lines.join('\n');
+  }
+
+  document.getElementById('submit-btn').addEventListener('click', function(){
+    if (cart.length === 0) {
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+      else alert('добавьте хотя бы одну позицию');
+      return;
+    }
+
+    var grandTotal = cart.reduce(function(sum, e){ return sum + e.result.total; }, 0);
+    var payload = {
+      items: cart.map(function(e){
+        return {
+          category: getCategory(e.data.category).label,
+          link: e.data.link || null,
+          size: e.data.size || null,
+          delivery: e.result.pieceMode ? 'поштучно' : (e.data.delivery === 'truck' ? 'фура' : 'авиа'),
+          weight: e.data.weight,
+          price_yuan: e.data.priceYuan,
+          qty: e.result.pieceMode ? e.data.qty : null,
+          price_rub: Math.round(e.result.priceRub),
+          markup_rub: Math.round(e.result.markupValue),
+          item_rub: Math.round(e.result.itemWithMarkup),
+          delivery_rub: Math.round(e.result.deliveryTotal),
+          total_rub: Math.round(e.result.total)
+        };
+      }),
+      total_rub: Math.round(grandTotal)
+    };
+
+    if (tg) {
+      // уходит в бота как web_app_data — бот сам пересылает расчёт в чат с Алиной
+      tg.sendData(JSON.stringify(payload));
+      tg.close();
+    } else {
+      var summary = buildSummaryText(payload);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(summary).then(function(){
+          alert('расчёт скопирован в буфер обмена:\n\n' + summary);
+        }).catch(function(){ alert(summary); });
+      } else {
+        alert(summary);
+      }
+    }
+  });
+
+  renderCart();
+
+  // на телефоне при открытой клавиатуре нижняя панель "итого/отправить"
+  // норовит наехать на поле ввода — прячем её, пока идёт ввод
+  var totalBarEl = document.getElementById('total-bar');
+  document.addEventListener('focusin', function(e){
+    if (e.target.matches('input, select, textarea')) {
+      totalBarEl.classList.add('hide-for-keyboard');
+    }
+  });
+  document.addEventListener('focusout', function(e){
+    if (!e.target.matches('input, select, textarea')) return;
+    setTimeout(function(){
+      var active = document.activeElement;
+      if (!active || !active.matches('input, select, textarea')) {
+        totalBarEl.classList.remove('hide-for-keyboard');
+      }
+    }, 60);
+  });
+})();
+</script>
+
+</body>
+</html>
