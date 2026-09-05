@@ -1,0 +1,11 @@
+{
+  "yuan": 14,
+  "usd": 90,
+  "markupTiers": [
+    { "maxYuan": 100, "type": "fixed", "value": 800 },
+    { "maxYuan": 250, "type": "fixed", "value": 1300 },
+    { "maxYuan": 450, "type": "fixed", "value": 3000 },
+    { "maxYuan": 700, "type": "fixed", "value": 4000 },
+    { "maxYuan": null, "type": "percent", "value": 0.25 }
+  ]
+}
