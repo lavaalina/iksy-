@@ -12,7 +12,7 @@ function formatOrder(payload) {
     if (i.size) line += `\n  размер: ${i.size}`;
     return line;
   });
-  lines.push(`\nитого: ${Number(payload.total_rub).toLocaleString('ru-RU')} ₽`);
+  lines.push(`\nИтого: ${Number(payload.total_rub).toLocaleString('ru-RU')} ₽`);
   return lines.join('\n');
 }
 
@@ -48,7 +48,6 @@ export default async function handler(req, res) {
   try {
     const update = req.body;
     const message = update && update.message;
-    const webAppUrl = `https://${req.headers['x-forwarded-host'] || req.headers.host}/`;
 
     if (message && message.web_app_data) {
       console.log('[iksy] web_app_data found, raw:', message.web_app_data.data);
@@ -59,7 +58,7 @@ export default async function handler(req, res) {
 
       await sendTelegramMessage(
         message.chat.id,
-        `расчёт получен:\n\n${summary}\n\nсвяжусь, чтобы подтвердить детали`
+        `Спасибо за заказ! Мы получили вашу заявку:\n\n${summary}\n\nСвяжемся с вами в ближайшее время, чтобы подтвердить детали заказа и доставки.`
       );
 
       if (ADMIN_CHAT_ID) {
@@ -70,12 +69,10 @@ export default async function handler(req, res) {
     }
 
     if (message && message.text === '/start') {
-      await sendTelegramMessage(message.chat.id, 'привет! жми на кнопку, чтобы рассчитать заказ', {
-        reply_markup: {
-          keyboard: [[{ text: 'открыть калькулятор', web_app: { url: webAppUrl } }]],
-          resize_keyboard: true,
-        },
-      });
+      await sendTelegramMessage(
+        message.chat.id,
+        'Здравствуйте! Здесь вы можете рассчитать стоимость вашего заказа и оформить его.\n\nЧтобы начать, откройте калькулятор через кнопку меню внизу чата.'
+      );
     }
   } catch (err) {
     console.error('[iksy] HANDLER ERROR:', err && err.stack ? err.stack : err);
