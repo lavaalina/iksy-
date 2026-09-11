@@ -672,10 +672,37 @@
       total_rub: Math.round(grandTotal)
     };
 
-    if (tg) {
-      // уходит в бота как web_app_data — бот сам пересылает расчёт в чат с Алиной
-      tg.sendData(JSON.stringify(payload));
-      tg.close();
+    var submitBtn = document.getElementById('submit-btn');
+    var originalText = submitBtn.textContent;
+
+    if (tg && tg.initData) {
+      // отправляем заказ напрямую на сервер — работает одинаково независимо
+      // от того, как был открыт мини-апп (меню, "открыть", кнопка в чате)
+      submitBtn.textContent = 'отправляем…';
+      submitBtn.disabled = true;
+
+      fetch('/api/submit-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData, payload: payload })
+      })
+        .then(function(r){ return r.json(); })
+        .then(function(result){
+          if (result && result.ok) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            submitBtn.textContent = 'заказ отправлен ✓';
+            setTimeout(function(){ tg.close(); }, 1200);
+          } else {
+            throw new Error((result && result.error) || 'unknown error');
+          }
+        })
+        .catch(function(){
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+          if (tg.showAlert) tg.showAlert('не получилось отправить заказ, попробуйте ещё раз');
+          else alert('не получилось отправить заказ, попробуйте ещё раз');
+        });
     } else {
       var summary = buildSummaryText(payload);
       if (navigator.clipboard) {
